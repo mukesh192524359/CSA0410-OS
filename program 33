@@ -1,0 +1,120 @@
+#include <stdio.h>
+
+int main() {
+    int pages[50], frames[10];
+    int n, f, i, j, k;
+    int pageFaults = 0, hits = 0;
+    int found, pos, farthest, index;
+
+    printf("Enter number of pages: ");
+    scanf("%d", &n);
+
+    printf("Enter page reference string:\n");
+    for (i = 0; i < n; i++)
+        scanf("%d", &pages[i]);
+
+    printf("Enter number of frames: ");
+    scanf("%d", &f);
+
+    // Initialize frames
+    for (i = 0; i < f; i++)
+        frames[i] = -1;
+
+    printf("\nPage\tFrames\t\tStatus\n");
+
+    for (i = 0; i < n; i++) {
+        found = 0;
+
+        // Check if page is already present
+        for (j = 0; j < f; j++) {
+            if (frames[j] == pages[i]) {
+                found = 1;
+                hits++;
+                break;
+            }
+        }
+
+        if (!found) {
+            pageFaults++;
+
+            // Check for empty frame
+            pos = -1;
+            for (j = 0; j < f; j++) {
+                if (frames[j] == -1) {
+                    pos = j;
+                    break;
+                }
+            }
+
+            // If empty frame exists
+            if (pos != -1) {
+                frames[pos] = pages[i];
+            } else {
+                // Find the page used farthest in the future
+                farthest = -1;
+                pos = -1;
+
+                for (j = 0; j < f; j++) {
+                    index = 1000;
+
+                    for (k = i + 1; k < n; k++) {
+                        if (frames[j] == pages[k]) {
+                            index = k;
+                            break;
+                        }
+                    }
+
+                    if (index > farthest) {
+                        farthest = index;
+                        pos = j;
+                    }
+                }
+
+                frames[pos] = pages[i];
+            }
+        }
+
+        printf("%d\t", pages[i]);
+        for (j = 0; j < f; j++) {
+            if (frames[j] == -1)
+                printf("- ");
+            else
+                printf("%d ", frames[j]);
+        }
+
+        if (found)
+            printf("\tHit\n");
+        else
+            printf("\tMiss\n");
+    }
+
+    printf("\nTotal Page Faults = %d\n", pageFaults);
+    printf("Total Page Hits = %d\n", hits);
+
+    return 0;
+}
+
+
+OUTPUT:
+
+Enter number of pages: 12
+Enter page reference string:
+1 2 3 4 1 2 5 1 2 3 4 5
+Enter number of frames: 3
+
+Page	Frames		Status
+  1   1 - - 	   Miss
+  2  	1 2 -      Miss
+  3  	1 2 3      Miss
+  4	  1 2 4 	   Miss
+  1	  1 2 4 	   Hit
+  2	  1 2 4 	   Hit
+  5	  1 2 5      Miss
+  1	  1 2 5 	   Hit
+  2	  1 2 5 	   Hit
+  3	  3 2 5 	   Miss
+  4	  4 2 5 	   Miss
+  5	  4 2 5 	   Hit
+
+Total Page Faults = 7
+Total Page Hits = 5
